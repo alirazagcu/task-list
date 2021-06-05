@@ -11,15 +11,14 @@ const SignUp = ({register, signUpSuccess, signUp}) => {
   const [isLoading, setIsLoading] = useState(false);
   const history = useHistory();
   useEffect(() => {
-    console.log("signUP ", signUp);
-    if (signUp && signUp.data && signUp.data.length > 0) {
+    if (signUp && signUp.data) {
       history.push('/notes')
       setIsLoading(false)
       toast.success(signUp.message);
     }
     else {
-      if(signUp){
-      toast.error(signUp);
+      if(signUp && signUp.data == null){
+      toast.error(signUp.message);
       setIsLoading(false)
       setInputState({nombre_completo: "",
       email: "",
@@ -73,6 +72,7 @@ const SignUp = ({register, signUpSuccess, signUp}) => {
             name="nombre_completo"
             id="number"
             placeholder="Nombre Completo"
+            required
             value={inputState.nombre_completo}
             onChange={onChangeHandler}
           />
@@ -86,6 +86,7 @@ const SignUp = ({register, signUpSuccess, signUp}) => {
             name="email"
             id="email"
             placeholder="Correo"
+            required
             value={inputState.email}
             onChange={onChangeHandler}
           />
@@ -99,6 +100,7 @@ const SignUp = ({register, signUpSuccess, signUp}) => {
             name="password"
             id="password"
             placeholder="Contrasena"
+            required
             value={inputState.password}
             onChange={onChangeHandler}
           />
@@ -112,6 +114,7 @@ const SignUp = ({register, signUpSuccess, signUp}) => {
             name="edad"
             id="age"
             placeholder="Edad"
+            required
             value={inputState.edad}
             onChange={onChangeHandler}
           />

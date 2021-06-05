@@ -14,7 +14,7 @@ import {
 } from "../actions/actionTypes";
 
 const initialState = {
-    notes: [],
+    notes: {data: []},
     addNotes: {},
     loginState: {},
     signUpState: {},

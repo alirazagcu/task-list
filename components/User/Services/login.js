@@ -3,7 +3,7 @@ const Dal = require("../UserDal");
 
 const login = async (email, password) => {
   let response = {};
-  let status = 500;
+  let status = 404;
   let users;
 
   try {
@@ -13,7 +13,7 @@ const login = async (email, password) => {
       message: "Ha ocurrido un error al iniciar sesión",
       data: null,
     };
-    status = 500;
+    status = 404;
     return {
       status,
       response,

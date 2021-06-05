@@ -14,6 +14,11 @@ const Login = ({signInUser,signIn}) => {
     email: "",
     password: ""
   });
+  
+  useEffect(() => {
+    if (localStorage.token) history.push('/notes')
+  }, [localStorage.token]);
+
   useEffect(() => {
     console.log("SignIn => ", signIn)
     if (signIn && signIn.data) {
@@ -22,8 +27,8 @@ const Login = ({signInUser,signIn}) => {
       toast.success(signIn.message);
     }
     else{
-      if(signIn){
-        toast.error(signIn);
+      if(signIn && signIn.data === null){
+        toast.error(signIn.message);
         setIsLoading(false)
         setInputState({email: "",
         password: ""})
@@ -108,7 +113,7 @@ const Login = ({signInUser,signIn}) => {
 };
 
 const mapStateToProps = (state) => {
-  console.log('State => ', state.notesState.loginState);
+  console.log('State => ', state);
   return {
     signIn: state.notesState.loginState
   };

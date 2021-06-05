@@ -14,8 +14,11 @@ import { connect } from "react-redux";
 import { addNotes  ,fetchNotes, updateNotes, deleteNotes} from "../../store/actions/actions";
 import {withRouter} from 'react-router';
 import { ToastContainer, toast } from 'react-toastify';
+import { useHistory } from "react-router-dom";
 
-const Notes = ({ addNotes, addResponse, history, allNotes, fetchNotes, updateNotesResponse, updateNotes, deleteNotes, delteNotesResponse }) => {
+
+const Notes = ({ addNotes, addResponse, allNotes, fetchNotes, updateNotesResponse, updateNotes, deleteNotes, delteNotesResponse }) => {
+  const history = useHistory();
   const [isLoading, setIsLoading] = useState(false);
   const [notesId , setNotesId] = useState("")
   const [inputState, setInputState] = useState({
@@ -23,6 +26,10 @@ const Notes = ({ addNotes, addResponse, history, allNotes, fetchNotes, updateNot
     description: "",
     emotion: "",
   });
+
+  useEffect(() => {
+    if (!localStorage.token) history.push('/sign-in')
+  }, []);
 
   useEffect(()=>{
     fetchNotes()
@@ -88,8 +95,8 @@ const Notes = ({ addNotes, addResponse, history, allNotes, fetchNotes, updateNot
       toast.success("Todo Found succesfully");
     }
     else {
-      if(allNotes){
-      toast.error(allNotes);
+      if(allNotes && allNotes.data && allNotes.data.length === 0){
+      toast.error(allNotes.message);
       setIsLoading(false)
       }
     }
@@ -132,6 +139,7 @@ const Notes = ({ addNotes, addResponse, history, allNotes, fetchNotes, updateNot
   };
 
   const listClickHandler = (list) =>{
+    console.log("LIST => ", list);
     const {id_tareas, titulo, descripcion, emocion} = {...list}
     setNotesId(id_tareas)
     setInputState({
@@ -146,6 +154,10 @@ const Notes = ({ addNotes, addResponse, history, allNotes, fetchNotes, updateNot
       id_tareas: notesId
     });
     setIsLoading(true)
+  }
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    history.push('/sign-in');
   }
   return (
     isLoading? 
@@ -214,20 +226,20 @@ const Notes = ({ addNotes, addResponse, history, allNotes, fetchNotes, updateNot
           </div>
         </div>
         <div className="grouplistButton">
-          <ListGroup className={`${allNotes && allNotes!=="NETWORK ERROR" && allNotes.length> 0 ? "groupList": ""}`}>
-            {allNotes && allNotes!=="NETWORK ERROR" &&  allNotes.length >0 &&
-              allNotes.map((list, index) => {
+          <ListGroup className={`${allNotes && allNotes.message!=="NETWORK ERROR" && allNotes.data.length> 0 ? "groupList": ""}`}>
+            {allNotes && allNotes.data && allNotes.data.length >0 &&
+              allNotes.data.map((item, index) => {
                 return (
                   <ListGroupItem
                     key={index}
-                    onClick={listClickHandler}
+                    onClick={() => listClickHandler(item)}
                   >
-                    {list.title}
+                    {item.titulo}
                   </ListGroupItem>
                 );
               })}
           </ListGroup>
-          <Button className="buttonText" outline color="primary" onClick={()=>{history.push("/")}}>
+          <Button className="buttonText" outline color="primary" onClick={handleLogout}>
             Salir
           </Button>{" "}
         </div>
@@ -247,10 +259,11 @@ const Notes = ({ addNotes, addResponse, history, allNotes, fetchNotes, updateNot
   );
 };
 const mapStateToProps = (state) => {
+  console.log("state => ", state)
   return {
-    addResponse: state.notesState.addNotes || {},
-    allNotes: state.notesState.notes || [],
-    updateNotesResponse: state.notesState.updateNotes || {},
+    addResponse: state.notesState.addNotes,
+    allNotes: state.notesState.notes,
+    updateNotesResponse: state.notesState.updateNotes,
     delteNotesResponse: state.notesState.deleteNotes
   };
 };

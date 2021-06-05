@@ -54,7 +54,7 @@ export const fetchNotesSuccess = (data) => {
 export const fetchNotesError = (data) => {
     return {
         type: FETCH_NOTES_ERROR,
-        payload: data || networkError
+        payload: data
     };
 };
 
@@ -78,10 +78,10 @@ export const signUpSuccess = (data) =>{
     };
 }
 
-export const signUpError = () =>{
+export const signUpError = (data) =>{
     return {
         type: SIGNUP_ERROR,
-        payload: networkError
+        payload: data
     };
 }
 
@@ -102,6 +102,7 @@ export const loginError = (data) =>{
 export const signUp = (obj) =>{
     return dispatch =>{
     return axios.post(`${baseUrl}sign-up`, obj).then((res)=>{
+        console.log("Res => ", res)
         if(res.status === 200){
             localStorage.setItem('token',res.data.data.token);
             dispatch(signUpSuccess(res.data))
@@ -111,8 +112,10 @@ export const signUp = (obj) =>{
             dispatch(signUpError(res.data))
         }
     }).catch((e)=>{
-        console.log(e)
-        dispatch(signUpError())
+        if (e.response.status === 400) {
+        dispatch(signUpError(e.response.data))
+        }
+        else dispatch(signUpError({data: null, message: e.message}))
     })
 }
 }
@@ -126,11 +129,19 @@ export const login = (obj) =>{
                 dispatch(loginSuccess(res.data))
             }
             else{
-                dispatch(addNotesError(res.data))
+                const response = {
+                    message: "Invalid User name or password",
+                    data: null
+                }
+                dispatch(loginError(response))
             }
         }).catch((e)=>{
-            console.log(e)
-            dispatch(addNotesError())
+            console.log("Error", e)
+            const response = {
+                data: null,
+                message: "Invalid User name or password"
+            }
+            dispatch(loginError(response))
         })
     }
 }
@@ -138,7 +149,13 @@ export const login = (obj) =>{
 export const addNotes = (obj) =>{
     const token = localStorage.getItem('token');
     return dispatch =>{
-        return axios.post(`${baseUrl1}agregar`, obj, token).then((res)=>{
+        return axios.post(`${baseUrl1}agregar`, obj,
+        {
+            headers: {
+                Authorization: `JWT ${token}`,
+            }
+        }
+        ).then((res)=>{
             if(res.status === 200 && res.data){
                 dispatch(addNotesSuccess(res.data))
             }
@@ -155,16 +172,22 @@ export const addNotes = (obj) =>{
 export const fetchNotes = () =>{
     const token = localStorage.getItem('token');
     return dispatch =>{
-        return axios.post(`${baseUrl1}mostrar`, token).then((res)=>{
-            if(res.status === 200 && res.data){
-                dispatch(fetchNotesSuccess(res.data))
+        return axios.get(`${baseUrl1}mostrar`, {
+            headers: {
+                Authorization: `JWT ${token}`,
+            }
+        }).then((res)=>{
+            console.log("Response => ", res)
+            if(res.status === 200 && res.data.data.length > 0){
+                dispatch(fetchNotesSuccess({data: res.data.data, message: "Found notes"}))
             }
             else{
-                dispatch(fetchNotesError(res.data && res.data.message && res.data.message.length===0 ? "No todo list found": ""));
+                console.log("Ali    ")
+                  dispatch(fetchNotesSuccess({data: [], message: "No to list found"}));
             }
         }).catch((e)=>{
             console.log(e)
-            dispatch(fetchNotesError())
+            dispatch(fetchNotesError({data: [], message: e.message}))
         })
     }
 }

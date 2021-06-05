@@ -4,7 +4,7 @@ const agregar = async (req, res) => {
   let response = {};
   let status = 500;
 
-  let { titulo, descripcion, emocion } = req.body;
+  let { title: titulo, description: descripcion, emotion:emocion } = req.body;
   if (!titulo || !descripcion || !emocion) res.status(400).json({message: "Información requerida"});
 
   let id_usuario;

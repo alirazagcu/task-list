@@ -10,7 +10,6 @@ function App() {
   useEffect(() => {
     if (localStorage.token) history.push('/notes')
   }, []);
-  const tokenValue = localStorage.getItem("token");
 
   return (
     <Router>
