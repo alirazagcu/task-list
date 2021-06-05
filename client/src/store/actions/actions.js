@@ -1,23 +1,73 @@
 import axios from 'axios';
 import {
-    ADD_NOTES,
+    ADD_NOTES_SUCCESS,
+    ADD_NOTES_ERROR,
     SIGNUP_SUCCESS,
     SIGNUP_ERROR,
     LOGIN_SUCCESS,
-    LOGIN_ERROR
+    LOGIN_ERROR,
+    FETCH_NOTES_SUCCESS,
+    FETCH_NOTES_ERROR,
+    UPDATE_NOTES_SUCCESS,
+    UPDATE_NOTES_ERROR,
+    DELETE_NOTES_SUCCESS,
+    DELETE_NOTES_ERROR
 } from './actionTypes';
 
-const networkError = {
-    message: "NETWORK ERROR",
-    data: {}
-}
+const networkError = "NETWORK ERROR";
 
 const baseUrl = "http://localhost:3000/usuarios/";
+const baseUrl1 = "http://localhost:3000/tareas/"
 
-export const addNotes = (data) => {
+export const deleteNotesSuccess = (data) => {
     return {
-        type: ADD_NOTES,
+        type: DELETE_NOTES_SUCCESS,
         payload: data
+    };
+};
+export const deleteNotesError = (data) => {
+    return {
+        type: DELETE_NOTES_ERROR,
+        payload: data || networkError
+    };
+};
+
+export const updateNotesSuccess = (data) => {
+    return {
+        type: UPDATE_NOTES_SUCCESS,
+        payload: data
+    };
+};
+export const updateNotesError = (data) => {
+    return {
+        type: UPDATE_NOTES_ERROR,
+        payload: data || networkError
+    };
+};
+
+export const fetchNotesSuccess = (data) => {
+    return {
+        type: FETCH_NOTES_SUCCESS,
+        payload: data
+    };
+};
+export const fetchNotesError = (data) => {
+    return {
+        type: FETCH_NOTES_ERROR,
+        payload: data
+    };
+};
+
+export const addNotesSuccess = (data) => {
+    return {
+        type: ADD_NOTES_SUCCESS,
+        payload: data
+    };
+};
+export const addNotesError = (data) => {
+    return {
+        type: ADD_NOTES_ERROR,
+        payload: data || networkError
     };
 };
 
@@ -28,10 +78,10 @@ export const signUpSuccess = (data) =>{
     };
 }
 
-export const signUpError = () =>{
+export const signUpError = (data) =>{
     return {
         type: SIGNUP_ERROR,
-        payload: networkError
+        payload: data
     };
 }
 
@@ -52,17 +102,21 @@ export const loginError = (data) =>{
 export const signUp = (obj) =>{
     return dispatch =>{
     return axios.post(`${baseUrl}sign-up`, obj).then((res)=>{
+        console.log("Res => ", res)
         if(res.status === 200){
             localStorage.setItem('token',res.data.data.token);
-            dispatch(signUpSuccess(res.data))
+            dispatch(signUpSuccess({success:true, data:res.data.data}))
         }
         else{
             localStorage.setItem('token','');
-            dispatch(signUpError(res.data))
+            dispatch(signUpError({success: false, data: null}))
         }
     }).catch((e)=>{
-        console.log(e)
-        dispatch(signUpError())
+        console.log(e.response.data)
+        if (e.response.status === 400) {
+        dispatch(signUpError({success: false,data: null, message: e.response.data.message}))
+        }
+        else dispatch(signUpError({success: false,data: null, message: e.message}))
     })
 }
 }
@@ -73,15 +127,114 @@ export const login = (obj) =>{
             if(res.status === 200 && res.data){
                 console.log("res ", res);
                 localStorage.setItem('token',res.data.data.token);
-                dispatch(loginSuccess(res.data))
+                dispatch(loginSuccess({success:true, data: res.data.data}))
             }
             else{
-                localStorage.setItem('token','');
-                dispatch(loginError(res.data))
+                const response = {
+                    message: "Invalid User name or password",
+                    data: null
+                }
+                dispatch(loginError({success: false,  ...response}))
+            }
+        }).catch((e)=>{
+            console.log("Error", e)
+            const response = {
+                data: null,
+                message: "Invalid User name or password"
+            }
+            dispatch(loginError({success: false ,...response}))
+        })
+    }
+}
+
+export const addNotes = (obj) =>{
+    const token = localStorage.getItem('token');
+    return dispatch =>{
+        return axios.post(`${baseUrl1}agregar`, obj,
+        {
+            headers: {
+                Authorization: `JWT ${token}`,
+            }
+        }
+        ).then((res)=>{
+            if(res.status === 200){
+                dispatch(addNotesSuccess({success: true, message: "Successfully addNotes"}))
+            }
+            else{
+                dispatch(addNotesError({success: false, message: "Error adding notes"}))
             }
         }).catch((e)=>{
             console.log(e)
-            dispatch(loginError())
+            dispatch(addNotesError({success: false, message: "Error adding"}))
+        })
+    }
+}
+
+export const fetchNotes = () =>{
+    const token = localStorage.getItem('token');
+    return dispatch =>{
+        return axios.get(`${baseUrl1}mostrar`, {
+            headers: {
+                Authorization: `JWT ${token}`,
+            }
+        }).then((res)=>{
+            console.log("Response => ", res)
+            if(res.status === 200 && res.data.data.length > 0){
+                dispatch(fetchNotesSuccess({success: true, data: res.data.data, message: "Found notes"}))
+            }
+            else{
+                  dispatch(fetchNotesSuccess({ success: false, data: [], message: "No to list found"}));
+            }
+        }).catch((e)=>{
+            if (e.response.status !== 401) {
+                dispatch(fetchNotesError({success: false, data: [], message: e.message}))
+            }
+        })
+    }
+}
+
+export const updateNotes = (obj) =>{
+    const token = localStorage.getItem('token');
+    return dispatch =>{
+        return axios.post(`${baseUrl1}actualizar`, obj,
+        {
+            headers: {
+                Authorization: `JWT ${token}`,
+            }
+        }
+        ).then((res)=>{
+            if(res.status === 200){
+                dispatch(updateNotesSuccess({success: true, message: 'Update Successfully'}))
+            }
+            else{
+                dispatch(updateNotesError({success: false, message: 'Updation Error'}));
+            }
+        }).catch((e)=>{
+            console.log(e)
+            dispatch(updateNotesError({success: false, message: 'Update Error'}))
+        })
+    }
+}
+
+export const deleteNotes = (obj) =>{
+    const token = localStorage.getItem('token');
+    return dispatch =>{
+        return axios.post(`${baseUrl1}eliminar`, obj,
+        {
+            headers: {
+                Authorization: `JWT ${token}`,
+            }
+        }
+        ).then((res)=>{
+            if(res.status === 200 && res.data){
+                dispatch(deleteNotesSuccess({success: true, message: "Successfully deleted"}))
+            }
+            else{
+                dispatch(deleteNotesError({success: false,  message: "Error"}));
+            }
+        }).catch((e)=>{
+            console.log(e)
+            dispatch(deleteNotesError({success: false, message: e.message}))
         })
     }
 }

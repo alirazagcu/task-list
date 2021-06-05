@@ -4,6 +4,7 @@ const { verifyJwt } = require("../../libs/utils");
 const Middleware = (req,res,next) =>{
 
     try {
+        console.log(req.body)
         if (req.headers.authorization) {
             console.log(req.headers.authorization)
             if (req.headers.authorization.split(' ')[0] !== 'JWT') throw new Error();

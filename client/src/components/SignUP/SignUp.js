@@ -1,18 +1,33 @@
 import React, {useState, useEffect} from "react";
-import { Button, Form, FormGroup, Label, Input, NavLink } from "reactstrap";
+import { Button, Form, FormGroup, Label, Input, NavLink, Spinner  } from "reactstrap";
 import "./SignUp.css";
 import {signUp, signUpSuccess} from "../../store/actions/actions";
 import { connect } from "react-redux";
 import axios from "axios";
 import { useHistory } from "react-router-dom";
+import { ToastContainer, toast } from 'react-toastify';
 
 const SignUp = ({register, signUpSuccess, signUp}) => {
+  const [isLoading, setIsLoading] = useState(false);
   const history = useHistory();
   useEffect(() => {
-    if (signUp && signUp.data) {
+    if (signUp && signUp.success) {
       history.push('/notes')
+      setIsLoading(false)
+      toast.success(signUp.message);
+    }
+    else {
+      if(signUp && !signUp.success){
+      toast.error(signUp.message);
+      setIsLoading(false)
+      setInputState({nombre_completo: "",
+      email: "",
+      password: "",
+      edad: ""})
+      }
     }
   }, [signUp])
+
   const [inputState, setInputState] = useState({
     nombre_completo: "",
     email: "",
@@ -34,13 +49,17 @@ const SignUp = ({register, signUpSuccess, signUp}) => {
     const {nombre_completo, email, password, edad} = {...inputState};
     if(nombre_completo && email &&  password && edad ){
       register(inputState);
+      setIsLoading(true)
     }
     else {
-      console.log("please provide the required inforation")
+      toast.error("Please provide the required information");
     }
   }
-
+  console.log("isloading ", isLoading);
   return (
+    isLoading? 
+      <Spinner style={{ width: '3rem', height: '3rem', marginLeft: "47%", marginTop: "20%"}}  color="danger" />:
+      <div>
     <Form className="signUpForm" onSubmit={submitHandler}>
       <div className="signUpParent">
         <div className="signUpText">REGISTRARSE</div>  {/* signUP REGISTRARSE */}
@@ -53,6 +72,7 @@ const SignUp = ({register, signUpSuccess, signUp}) => {
             name="nombre_completo"
             id="number"
             placeholder="Nombre Completo"
+            required
             value={inputState.nombre_completo}
             onChange={onChangeHandler}
           />
@@ -66,6 +86,7 @@ const SignUp = ({register, signUpSuccess, signUp}) => {
             name="email"
             id="email"
             placeholder="Correo"
+            required
             value={inputState.email}
             onChange={onChangeHandler}
           />
@@ -79,6 +100,7 @@ const SignUp = ({register, signUpSuccess, signUp}) => {
             name="password"
             id="password"
             placeholder="Contrasena"
+            required
             value={inputState.password}
             onChange={onChangeHandler}
           />
@@ -92,6 +114,7 @@ const SignUp = ({register, signUpSuccess, signUp}) => {
             name="edad"
             id="age"
             placeholder="Edad"
+            required
             value={inputState.edad}
             onChange={onChangeHandler}
           />
@@ -103,6 +126,18 @@ const SignUp = ({register, signUpSuccess, signUp}) => {
         </div>
       </div>
     </Form>
+    <ToastContainer
+      position="top-right"
+      autoClose={3000}
+      hideProgressBar={false}
+      newestOnTop={false}
+      closeOnClick
+      rtl={false}
+      draggable
+      />
+      {/* Same as */}
+    <ToastContainer />
+    </div>
   );
 };
 const mapStateToProps = (state) => {
