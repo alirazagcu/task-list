@@ -105,17 +105,18 @@ export const signUp = (obj) =>{
         console.log("Res => ", res)
         if(res.status === 200){
             localStorage.setItem('token',res.data.data.token);
-            dispatch(signUpSuccess(res.data))
+            dispatch(signUpSuccess({success:true, data:res.data.data}))
         }
         else{
             localStorage.setItem('token','');
-            dispatch(signUpError(res.data))
+            dispatch(signUpError({success: false, data: null}))
         }
     }).catch((e)=>{
+        console.log(e.response.data)
         if (e.response.status === 400) {
-        dispatch(signUpError(e.response.data))
+        dispatch(signUpError({success: false,data: null, message: e.response.data.message}))
         }
-        else dispatch(signUpError({data: null, message: e.message}))
+        else dispatch(signUpError({success: false,data: null, message: e.message}))
     })
 }
 }
@@ -126,14 +127,14 @@ export const login = (obj) =>{
             if(res.status === 200 && res.data){
                 console.log("res ", res);
                 localStorage.setItem('token',res.data.data.token);
-                dispatch(loginSuccess(res.data))
+                dispatch(loginSuccess({success:true, data: res.data.data}))
             }
             else{
                 const response = {
                     message: "Invalid User name or password",
                     data: null
                 }
-                dispatch(loginError(response))
+                dispatch(loginError({success: false,  ...response}))
             }
         }).catch((e)=>{
             console.log("Error", e)
@@ -141,7 +142,7 @@ export const login = (obj) =>{
                 data: null,
                 message: "Invalid User name or password"
             }
-            dispatch(loginError(response))
+            dispatch(loginError({success: false ,...response}))
         })
     }
 }
@@ -156,15 +157,15 @@ export const addNotes = (obj) =>{
             }
         }
         ).then((res)=>{
-            if(res.status === 200 && res.data){
-                dispatch(addNotesSuccess(res.data))
+            if(res.status === 200){
+                dispatch(addNotesSuccess({success: true, message: "Successfully addNotes"}))
             }
             else{
-                dispatch(addNotesError(res.data))
+                dispatch(addNotesError({success: false, message: "Error adding notes"}))
             }
         }).catch((e)=>{
             console.log(e)
-            dispatch(addNotesError())
+            dispatch(addNotesError({success: false, message: "Error adding"}))
         })
     }
 }
@@ -179,49 +180,61 @@ export const fetchNotes = () =>{
         }).then((res)=>{
             console.log("Response => ", res)
             if(res.status === 200 && res.data.data.length > 0){
-                dispatch(fetchNotesSuccess({data: res.data.data, message: "Found notes"}))
+                dispatch(fetchNotesSuccess({success: true, data: res.data.data, message: "Found notes"}))
             }
             else{
-                console.log("Ali    ")
-                  dispatch(fetchNotesSuccess({data: [], message: "No to list found"}));
+                  dispatch(fetchNotesSuccess({ success: false, data: [], message: "No to list found"}));
             }
         }).catch((e)=>{
-            console.log(e)
-            dispatch(fetchNotesError({data: [], message: e.message}))
+            if (e.response.status !== 401) {
+                dispatch(fetchNotesError({success: false, data: [], message: e.message}))
+            }
         })
     }
 }
 
 export const updateNotes = (obj) =>{
-    // const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token');
     return dispatch =>{
-        return axios.post(`${baseUrl1}actualizar`, obj).then((res)=>{
-            if(res.status === 200 && res.data){
-                dispatch(updateNotesSuccess(res.data))
+        return axios.post(`${baseUrl1}actualizar`, obj,
+        {
+            headers: {
+                Authorization: `JWT ${token}`,
+            }
+        }
+        ).then((res)=>{
+            if(res.status === 200){
+                dispatch(updateNotesSuccess({success: true, message: 'Update Successfully'}))
             }
             else{
-                dispatch(updateNotesError(res.data));
+                dispatch(updateNotesError({success: false, message: 'Updation Error'}));
             }
         }).catch((e)=>{
             console.log(e)
-            dispatch(updateNotesError())
+            dispatch(updateNotesError({success: false, message: 'Update Error'}))
         })
     }
 }
 
 export const deleteNotes = (obj) =>{
-    // const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token');
     return dispatch =>{
-        return axios.post(`${baseUrl1}eliminar`, obj).then((res)=>{
+        return axios.post(`${baseUrl1}eliminar`, obj,
+        {
+            headers: {
+                Authorization: `JWT ${token}`,
+            }
+        }
+        ).then((res)=>{
             if(res.status === 200 && res.data){
-                dispatch(deleteNotesSuccess("Successfully deleted"))
+                dispatch(deleteNotesSuccess({success: true, message: "Successfully deleted"}))
             }
             else{
-                dispatch(deleteNotesError("Server"));
+                dispatch(deleteNotesError({success: false,  message: "Error"}));
             }
         }).catch((e)=>{
             console.log(e)
-            dispatch(deleteNotesError())
+            dispatch(deleteNotesError({success: false, message: e.message}))
         })
     }
 }

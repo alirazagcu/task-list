@@ -14,12 +14,12 @@ import {
 } from "../actions/actionTypes";
 
 const initialState = {
-    notes: {data: []},
-    addNotes: {},
-    loginState: {},
-    signUpState: {},
-    updateNotes: {},
-    deleteNotes: ""
+    notes: {succes:false, data: []},
+    addNotes: {success:false},
+    loginState: {success:false},
+    signUpState: {success: false},
+    updateNotes: {success:false},
+    deleteNotes: {success: false}
 };
 
 const reducer = ( state = initialState, action ) => {

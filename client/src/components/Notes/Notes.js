@@ -21,6 +21,9 @@ const Notes = ({ addNotes, addResponse, allNotes, fetchNotes, updateNotesRespons
   const history = useHistory();
   const [isLoading, setIsLoading] = useState(false);
   const [notesId , setNotesId] = useState("")
+  const [addDisable, setAddDisable] = useState(false);
+  const [updateDisable, setUpdateDisable] = useState(true);
+  const [deleteDisable, setDeleteDisable] = useState(true);
   const [inputState, setInputState] = useState({
     title: "",
     description: "",
@@ -38,30 +41,43 @@ const Notes = ({ addNotes, addResponse, allNotes, fetchNotes, updateNotesRespons
 
   useEffect(() => {
     console.log("notes", delteNotesResponse);
-    if (delteNotesResponse) {
+    if (delteNotesResponse.success) {
       setIsLoading(false)
-      toast.success(delteNotesResponse);
+      toast.success(delteNotesResponse.message);
+      setInputState({title: "",
+      description: "",
+      emotion: "",})
+      fetchNotes()  
+      setUpdateDisable(true);
+      setDeleteDisable(true);
+      setAddDisable(false);
     }
-    else {
-      if(delteNotesResponse){
-      toast.error(delteNotesResponse);
+    else if (!delteNotesResponse.success) {
+      toast.error(delteNotesResponse.message);
       setIsLoading(false)
       setInputState({title: "",
       description: "",
       emotion: "",})
-      }
     }
   }, [delteNotesResponse]);
 
   useEffect(() => {
     console.log("notes", updateNotesResponse);
-    if (updateNotesResponse && updateNotesResponse.data && updateNotesResponse.data.length > 0) {
+    if (updateNotesResponse && updateNotesResponse.success) {
       setIsLoading(false)
       toast.success(updateNotesResponse.message);
+      setInputState({title: "",
+      description: "",
+      emotion: "",})
+      setUpdateDisable(true);
+      setDeleteDisable(true);
+      setAddDisable(false);
+      fetchNotes()   
+
     }
     else {
-      if(updateNotesResponse){
-      toast.error(updateNotesResponse);
+      if(updateNotesResponse && !updateNotesResponse.success) {
+      toast.error(updateNotesResponse.message);
       setIsLoading(false)
       setInputState({title: "",
       description: "",
@@ -72,12 +88,16 @@ const Notes = ({ addNotes, addResponse, allNotes, fetchNotes, updateNotesRespons
 
   useEffect(() => {
     console.log("notes", addResponse);
-    if (addResponse && addResponse.data && addResponse.data.length > 0) {
+    if (addResponse && addResponse.success) {
       setIsLoading(false)
       toast.success(addResponse.message);
+      setInputState({title: "",
+      description: "",
+      emotion: "",})
+      fetchNotes()   
     }
     else {
-      if(addResponse){
+      if(addResponse && !addResponse.success){
       toast.error(addResponse);
       setIsLoading(false)
       setInputState({title: "",
@@ -90,15 +110,13 @@ const Notes = ({ addNotes, addResponse, allNotes, fetchNotes, updateNotesRespons
 
   useEffect(() => {
     console.log("notes", allNotes);
-    if (allNotes && allNotes.data && allNotes.data.length > 0) {
+    if (allNotes && allNotes.success && allNotes.data.length > 0) {
       setIsLoading(false)
       toast.success("Todo Found succesfully");
     }
-    else {
-      if(allNotes && allNotes.data && allNotes.data.length === 0){
+    else if (allNotes && !allNotes.success) {
       toast.error(allNotes.message);
       setIsLoading(false)
-      }
     }
   }, [allNotes]);
 
@@ -146,7 +164,10 @@ const Notes = ({ addNotes, addResponse, allNotes, fetchNotes, updateNotesRespons
       title: titulo,
     description: descripcion,
     emotion: emocion
-    })
+    });
+    setUpdateDisable(false);
+    setDeleteDisable(false);
+    setAddDisable(true);
   }
 
   const delteNotesHandler = () =>{
@@ -157,7 +178,7 @@ const Notes = ({ addNotes, addResponse, allNotes, fetchNotes, updateNotesRespons
   }
   const handleLogout = () => {
     localStorage.removeItem('token')
-    history.push('/sign-in');
+    window.location.reload();
   }
   return (
     isLoading? 
@@ -175,6 +196,7 @@ const Notes = ({ addNotes, addResponse, allNotes, fetchNotes, updateNotesRespons
                 type="text"
                 name="title"
                 id="title"
+                required
                 placeholder="Titulo"
                 value={inputState.title}
                 onChange={onChangeHandler}
@@ -188,6 +210,7 @@ const Notes = ({ addNotes, addResponse, allNotes, fetchNotes, updateNotesRespons
                 type="text"
                 name="description"
                 id="description"
+                required
                 placeholder="Descripcion"
                 value={inputState.description}
                 onChange={onChangeHandler}
@@ -202,6 +225,7 @@ const Notes = ({ addNotes, addResponse, allNotes, fetchNotes, updateNotesRespons
                 name="emotion"
                 id="emotion"
                 placeholder="Emocion"
+                required
                 value={inputState.emotion}
                 onChange={onChangeHandler}
               />
@@ -209,17 +233,24 @@ const Notes = ({ addNotes, addResponse, allNotes, fetchNotes, updateNotesRespons
             <Button
               className="buttonText"
               outline
+              disabled={addDisable}
               color="primary"
               onClick={addNotesHandler}
             >
               Insertar
             </Button>{" "}
             {/*Insert */}
-            <Button className="buttonText" outline color="primary" onClick={updateNotesHandler}>
+            <Button className="buttonText"
+             disabled={updateDisable}
+              outline color="primary"
+              onClick={updateNotesHandler}>
               Actualizar
             </Button>
             {/**To update */}
-            <Button className="buttonText" outline color="primary" onClick={delteNotesHandler}>
+            <Button className="buttonText"
+             disabled={deleteDisable} 
+             outline color="primary"
+              onClick={delteNotesHandler}>
               Eliminar
             </Button>{" "}
             {/**Remove */}

@@ -21,13 +21,14 @@ const Login = ({signInUser,signIn}) => {
 
   useEffect(() => {
     console.log("SignIn => ", signIn)
-    if (signIn && signIn.data) {
+    if (signIn && signIn.success) {
       history.push('/notes')
       setIsLoading(false)
       toast.success(signIn.message);
     }
     else{
-      if(signIn && signIn.data === null){
+      if(signIn && !signIn.success){
+        console.log("Ali")
         toast.error(signIn.message);
         setIsLoading(false)
         setInputState({email: "",

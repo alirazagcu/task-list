@@ -11,13 +11,13 @@ const SignUp = ({register, signUpSuccess, signUp}) => {
   const [isLoading, setIsLoading] = useState(false);
   const history = useHistory();
   useEffect(() => {
-    if (signUp && signUp.data) {
+    if (signUp && signUp.success) {
       history.push('/notes')
       setIsLoading(false)
       toast.success(signUp.message);
     }
     else {
-      if(signUp && signUp.data == null){
+      if(signUp && !signUp.success){
       toast.error(signUp.message);
       setIsLoading(false)
       setInputState({nombre_completo: "",
