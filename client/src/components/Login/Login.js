@@ -1,12 +1,14 @@
-import React, { useEffect } from "react";
-import { Button, Form, FormGroup, Label, Input, NavLink } from "reactstrap";
+import React, { useState, useEffect } from "react";
+import { Button, Form, FormGroup, Label, Input, NavLink, Spinner } from "reactstrap";
 import "./Login.css";
 import {login} from "../../store/actions/actions";
 import { connect } from "react-redux";
 import axios from "axios";
 import { useHistory } from "react-router-dom";
+import { ToastContainer, toast } from 'react-toastify';
 
 const Login = ({signInUser,signIn}) => {
+  const [isLoading, setIsLoading] = useState(false);
   const history = useHistory();
   const [inputState, setInputState] = React.useState({
     email: "",
@@ -16,6 +18,16 @@ const Login = ({signInUser,signIn}) => {
     console.log("SignIn => ", signIn)
     if (signIn && signIn.data) {
       history.push('/notes')
+      setIsLoading(false)
+      toast.success(signIn.message);
+    }
+    else{
+      if(signIn){
+        toast.error(signIn);
+        setIsLoading(false)
+        setInputState({email: "",
+        password: ""})
+        }
     }
   }, [signIn])
   const onChangeHandler = (e) => {
@@ -33,12 +45,16 @@ const Login = ({signInUser,signIn}) => {
     const { email, password } = {...inputState};
     if(email &&  password ){
       signInUser(inputState);
+      setIsLoading(true)
     }
     else {
-      console.log("please provide the required inforation")
+      toast.error("Please provide the required information");
     }
   }
   return (
+    isLoading? 
+      <Spinner style={{ width: '3rem', height: '3rem', marginLeft: "47%", marginTop: "20%"}}  color="danger" />:
+      <div>
     <Form className="loginForm" onSubmit={submitHandler}>
       <div className="loginParent">
         <div className="loginText">Login</div>
@@ -76,6 +92,18 @@ const Login = ({signInUser,signIn}) => {
         </div>
       </div>
     </Form>
+    <ToastContainer
+      position="top-right"
+      autoClose={3000}
+      hideProgressBar={false}
+      newestOnTop={false}
+      closeOnClick
+      rtl={false}
+      draggable
+      />
+      {/* Same as */}
+    <ToastContainer />
+    </div>
   );
 };
 
